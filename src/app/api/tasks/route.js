@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import connectionToDB from "../../../../config/connection";
 import Task from "../../../../models/Task";
 
-// GET request: Fetch all tasks
+
 export async function GET(request) {
   try {
     console.log("Connecting to DB...");
@@ -25,17 +25,16 @@ export async function GET(request) {
   }
 }
 
-// POST request: Create a new task
+
 export async function POST(request) {
   try {
     console.log("Connecting to DB...");
     await connectionToDB();
     console.log("DB Connected!");
 
-    // Parsing the body data sent from Postman
     const { user, task, status } = await request.json();
 
-    // Create a new task
+
     const newTask = new Task({ user, task, status });
     await newTask.save();
 
@@ -52,15 +51,22 @@ export async function POST(request) {
   }
 }
 
-// PATCH request: Update an existing task
+
 export async function PATCH(request) {
   try {
     console.log("Connecting to DB...");
     await connectionToDB();
     console.log("DB Connected!");
 
-    // Parsing the body data and extracting task ID from the URL
-    const { taskId } = request.query;
+    // Extracting task ID from the URL
+    const { searchParams } = new URL(request.url);
+    const taskId = searchParams.get("taskId");
+
+    if (!taskId) {
+      return NextResponse.json({ error: "Task ID is required" }, { status: 400 });
+    }
+
+    // Parsing the body data
     const { user, task, status } = await request.json();
 
     // Update the task
@@ -87,7 +93,8 @@ export async function PATCH(request) {
   }
 }
 
-// DELETE request: Delete a task by ID
+
+
 export async function DELETE(request) {
   try {
     console.log("Connecting to DB...");
@@ -95,7 +102,12 @@ export async function DELETE(request) {
     console.log("DB Connected!");
 
     // Extracting task ID from the URL
-    const { taskId } = request.query;
+    const { searchParams } = new URL(request.url);
+    const taskId = searchParams.get("taskId");
+
+    if (!taskId) {
+      return NextResponse.json({ error: "Task ID is required" }, { status: 400 });
+    }
 
     // Delete the task
     const deletedTask = await Task.findByIdAndDelete(taskId);
@@ -116,3 +128,4 @@ export async function DELETE(request) {
     );
   }
 }
+
